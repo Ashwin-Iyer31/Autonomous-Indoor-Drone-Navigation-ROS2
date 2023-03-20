@@ -1,0 +1,5 @@
+source install/setup.bash
+colcon build --symlink-install
+ros2 launch autonomous_drone sim.launch.py world:=./src/autonomous_drone/worlds/my_indoor.world
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/jmc/commands
+ros2 topic pub -1 /jmc/commands std_msgs/Float64MultiArray "data: [50, -50, 50, -50]"

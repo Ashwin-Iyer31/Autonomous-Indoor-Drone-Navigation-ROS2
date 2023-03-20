@@ -1,0 +1,8 @@
+build/
+install/
+log/
+src/autonomous_drone/build/
+src/autonomous_drone/include/
+src/autonomous_drone/install/
+src/autonomous_drone/log/
+src/autonomous_drone/src/
