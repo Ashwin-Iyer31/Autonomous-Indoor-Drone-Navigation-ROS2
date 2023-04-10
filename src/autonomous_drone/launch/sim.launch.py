@@ -35,9 +35,9 @@ def generate_launch_description():
 
 
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                    arguments=['-topic', 'robot_description',
-                                '-entity', 'my_bot'],
-                    output='screen')
+        arguments=['-topic', 'robot_description', '-entity', 'my_bot'],
+        output='screen'
+    )
 
     jmc_spawner = Node(
         package="controller_manager",
@@ -45,10 +45,27 @@ def generate_launch_description():
         arguments=["jmc"],
     )
 
+    rf2o_laser_odometry = Node(
+        package="rf2o_laser_odometry",
+        executable="rf2o_laser_odometry_node",
+        parameters=[{
+                    'laser_scan_topic' : '/laser_controller/out',
+                    #'odom_topic' : '/odom_rf2o',
+                    'odom_topic' : '/odom',
+                    'publish_tf' : True,
+                    #'base_frame_id' : 'base_footprint',
+                    'base_frame_id' : 'base_link',
+                    #'odom_frame_id' : 'odom',
+                    'init_pose_from_topic' : '',
+                    'freq' : 10.0}]
+
+    )
+
     # Run the node
     return LaunchDescription([
         gazebo,
         node_robot_state_publisher,
         spawn_entity,
-        jmc_spawner
+        jmc_spawner,
+        rf2o_laser_odometry
     ])
