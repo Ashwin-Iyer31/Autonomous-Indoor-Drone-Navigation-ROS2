@@ -7,3 +7,7 @@ src/autonomous_drone/install/
 src/autonomous_drone/log/
 src/autonomous_drone/src/
 src/rf2o_laser_odometry/
+src/my_controller/resource/
+src/my_controller/test/
+src/my_controller/my_controller/__pycache__/
+src/my_controller/setup.cfg
