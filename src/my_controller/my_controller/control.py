@@ -1,25 +1,19 @@
 #!/usr/bin/env python
 #---------------------------------------------------
-
+import threading
 import rclpy
 from .PID import PID
 from rclpy.node import Node
 from gazebo_msgs.msg import ModelStates
 from std_msgs.msg import Float64MultiArray, Float32
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Twist
 from transforms3d.euler import quat2euler
-from sensor_msgs.msg import Joy
 
-global yawSetpoint, thrust, pitchSetpoint, rollSetpoint, kp, ki, kd
+global yawSetpoint, thrust, pitchSetpoint, rollSetpoint
 yawSetpoint = 0
 thrust = 1500
 pitchSetpoint = 0
 rollSetpoint = 0
-
-kp = 10
-ki = 0.0002
-kd = 3.8
-
 
 class PoseSub(Node):
     def __init__(self):
@@ -60,10 +54,10 @@ class PoseSub(Node):
         orientationObj = msg.pose[index].orientation
         orientationList = [orientationObj.x, orientationObj.y, orientationObj.z, orientationObj.w]
         (roll, pitch, yaw) = (quat2euler(orientationList))
-    
+
         #send roll, pitch, yaw data to PID() for attitude-stabilisation, along with 'f', to obtain 'fUpdated'
         #Alternatively, you can add your 'control-file' with other algorithms such as Reinforcement learning, and import the main function here instead of PID().
-        (fUpdated, err_roll.data, err_pitch.data, err_yaw.data) = PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, kp, ki, kd)
+        (fUpdated, err_roll.data, err_pitch.data, err_yaw.data) = PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint)
 
         velPub.publish(fUpdated)
         err_rollPub.publish(err_roll)
@@ -73,12 +67,22 @@ class PoseSub(Node):
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 
-#def JoyData(msg4):
-#    global yawSetpoint, thrust, pitchSetpoint, rollSetpoint
-#    yawSetpoint = (msg4.axes[0]*10.0)  #Left is positive
-#    thrust = (msg4.axes[1]*500 + 1500) #Up is positive
-#    pitchSetpoint = (msg4.axes[2]*10.0) #Up is positive
-#    rollSetpoint = (msg4.axes[3]*10.0) #Left is positive
+class CmdVelSub(Node):
+    def __init__(self):
+        super().__init__('cmd_vel_sub')
+        self.subscription = self.create_subscription(
+            Twist,
+            '/cmd_vel',
+            self.listener_callback,
+            10)
+        self.subscription
+
+    def listener_callback(self, msg):
+        global yawSetpoint, thrust, pitchSetpoint, rollSetpoint
+        yawSetpoint = (msg.angular.z*10.0)  #Left is positive
+        thrust = (msg.linear.z*1000 + 1500) #Up is positive
+        pitchSetpoint = (msg.linear.x*20.0) #Up is positive
+        rollSetpoint = (msg.angular.x*10.0) #Left is positive
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,13 +91,26 @@ def main(args=None):
     #Initiate the node that will control the gazebo model
     rclpy.init(args=args)
     
-
     #Subscribe to /gazebo/model_states to obtain the pose in quaternion form
     pose_sub = PoseSub()
-    #joyData = node.create_subscription(Joy, '/joy', JoyData)
+    cmd_vel_sub = CmdVelSub()
+    
 
-    rclpy.spin(pose_sub)
-    #rclpy.spin(joyData)
-
+    executor = rclpy.executors.MultiThreadedExecutor()
+    executor.add_node(pose_sub)
+    executor.add_node(cmd_vel_sub)
+    
+    # Spin in a separate thread
+    executor_thread = threading.Thread(target=executor.spin, daemon=True)
+    executor_thread.start()
+    
+    try:
+        while rclpy.ok():
+            None
+    except KeyboardInterrupt:
+        pass
+    rclpy.shutdown()
+    executor_thread.join()
+    
 if __name__ == '__main__':
     main()

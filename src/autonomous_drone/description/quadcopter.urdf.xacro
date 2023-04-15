@@ -28,8 +28,14 @@
 	</xacro:macro> 
 
 <!-- ======================================================== -->
-    <!-- BASE_FOOTPRINT LINK -->
+    <!-- BASE LINK -->
     <link name="base_link">
+    </link>
+
+<!-- ======================================================== -->	
+    <!-- BASE_FOOTPRINT LINK -->
+
+	<link name="base_footprint">
     </link>
 
 <!-- ======================================================== -->	
@@ -211,6 +217,111 @@
 	</link>
 
 <!-- ======================================================== -->
+<link name="arduino">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="0.1 0.1 0.001" />
+			</geometry>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="0.1 0.1 0.001" />
+			</geometry>
+		</collision>
+		<xacro:default_inertial mass="${0.01}" p="${0}" ix_value="${0}" iy_value="${0}" iz_value="${8.33333e-5}" />
+	</link>
+
+<!-- ======================================================== -->
+	<link name="ESC1">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 ${-pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+			
+			<material name="yellow" />
+		</visual>
+		
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 ${-pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+		</collision>
+		
+		<xacro:default_inertial mass="${0.01}" p="${-pi_value/4}" ix_value="${0}" iy_value="${0}" iz_value="${3.664e-5}" />
+	</link>
+<!-- ======================================================== -->
+	<link name="ESC2">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 ${-pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+			
+			<material name="yellow" />
+		</visual>
+		
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 ${-pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+		</collision>
+		
+		<xacro:default_inertial mass="${0.01}" p="${-pi_value/4}" ix_value="${0}" iy_value="${0}" iz_value="${3.664e-5}" />
+	</link>
+<!-- ======================================================== -->
+	<link name="ESC3">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 ${pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+			
+			<material name="yellow" />
+		</visual>
+		
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 ${pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+		</collision>
+		
+		<xacro:default_inertial mass="${0.01}" p="${pi_value/4}" ix_value="${0}" iy_value="${0}" iz_value="${3.664e-5}" />
+	</link>
+<!-- ======================================================== -->
+	<link name="ESC4">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 ${pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+			
+			<material name="yellow" />
+		</visual>
+		
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 ${pi_value/4}" />
+			
+			<geometry>
+				<box size="${width} ${0.07} ${0.008}" />
+			</geometry>
+		</collision>
+		
+		<xacro:default_inertial mass="${0.01}" p="${pi_value/4}" ix_value="${0}" iy_value="${0}" iz_value="${3.664e-5}" />
+	</link>
+<!-- ======================================================== -->
 	<!-- Propellers of the quad: fr, fl, br, bl -->
 	<link name="prop_front_right">
 		<visual>
@@ -302,6 +413,14 @@
 		<xacro:default_inertial mass="${mass_pr}" p="${0}"  ix_value="${0}" iy_value="${0}" iz_value="${4.42448e-5}" />
 		
 	</link>
+<!-- ======================================================== -->
+    <!-- Define the joint between the base and footprint -->
+	<joint name="base_footprint_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="base_footprint"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
 <!-- ======================================================== -->
 	<!-- Define the joint between the arms of the frame -->
 	<joint name="center_to_arm1" type="fixed">
@@ -399,8 +518,48 @@
 		<origin xyz="${prop_loc - 0.01} ${-prop_loc + 0.01} 0.01" rpy="0 0 0" />
 		<axis xyz="0 0 1" />
 	</joint>
-
 <!-- ======================================================== -->
+<!-- Define joint between Arduino and frame -->
+	<joint name="joint_arduino_frame" type="fixed">
+		<parent link="plate2" />
+		<child link="arduino" />
+		<origin xyz="${0} ${0} 0.005" rpy="0 0 0" />
+		<axis xyz="0 0 1" />
+	</joint>
+<!-- ======================================================== -->
+<!-- Define joint between ESC and frame -->
+	<joint name="joint_frame_ESC1" type="fixed">
+		<parent link="base_link2" />
+		<child link="ESC1" />
+		<origin xyz="${prop_loc/2 + 0.013} ${prop_loc/2 + 0.013} 0.009" rpy="0 0 0" />
+		<axis xyz="0 0 1" />
+	</joint>
+<!-- ======================================================== -->
+<!-- Define joint between ESC and frame -->
+	<joint name="joint_frame_ESC2" type="fixed">
+		<parent link="base_link2" />
+		<child link="ESC2" />
+		<origin xyz="${-prop_loc/2 - 0.013} ${-prop_loc/2 - 0.013} 0.009" rpy="0 0 0" />
+		<axis xyz="0 0 1" />
+	</joint>
+<!-- ======================================================== -->
+<!-- Define joint between ESC and frame -->
+	<joint name="joint_frame_ESC3" type="fixed">
+		<parent link="base_link1" />
+		<child link="ESC3" />
+		<origin xyz="${-prop_loc/2 - 0.013} ${prop_loc/2 + 0.013} 0.009" rpy="0 0 0" />
+		<axis xyz="0 0 1" />
+	</joint>
+<!-- ======================================================== -->
+<!-- Define joint between ESC and frame -->
+	<joint name="joint_frame_ESC4" type="fixed">
+		<parent link="base_link1" />
+		<child link="ESC4" />
+		<origin xyz="${prop_loc/2 + 0.013} ${-prop_loc/2 - 0.013} 0.009" rpy="0 0 0" />
+		<axis xyz="0 0 1" />
+	</joint>
+<!-- ======================================================== -->
+
 <!-- Add transmission elements -->
 	<transmission name="front_right_motor_joint" >
 		<type>transmission_interface/SimpleTransmission</type>	

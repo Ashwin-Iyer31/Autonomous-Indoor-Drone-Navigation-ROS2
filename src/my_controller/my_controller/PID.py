@@ -1,13 +1,13 @@
 import time
 
-def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, kp_roll, ki_roll, kd_roll):
-    #Define the global variables to prevent them from dying and resetting to zero, each time a function call occurs. Some of these variables 		may be redundant.
+def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
+    #Define the global variables to prevent them from dying and resetting to zero, each time a function call occurs. Some of these variables may be redundant.
     global kp_pitch, ki_pitch, kd_pitch, kp_yaw, ki_yaw, kd_yaw, prevErr_roll, prevErr_pitch, prevErr_yaw, pMem_roll, pMem_yaw, pMem_pitch, iMem_roll, iMem_pitch, iMem_yaw, dMem_roll, dMem_pitch, dMem_yaw, flag, setpoint, sampleTime
     #-----------------------
     #Assign your PID values here. From symmetry, control for roll and pitch is the same.
-    #kp_roll = 10
-    #ki_roll = 0.0002
-    #kd_roll = 3.8
+    kp_roll = 75
+    ki_roll = 0.0001
+    kd_roll = 50
     kp_pitch = kp_roll
     ki_pitch = ki_roll
     kd_pitch = kd_roll
@@ -80,13 +80,7 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, k
     #output = Kp*e(t) + Ki*integral(e(t)) + Kd*derivative(e(t))
     output_roll = pMem_roll + ki_roll * iMem_roll + kd_roll * dMem_roll
     output_pitch = pMem_pitch + ki_pitch * iMem_pitch + kd_pitch * dMem_pitch
-    output_yaw = pMem_yaw + ki_yaw * iMem_yaw + kd_yaw * dMem_yaw 
-    #-------------------------------------------------------------------------------------------------------------------------------
-        #Ignore this.
-    #br_motor_vel = 50.5 + output_pitch + output_roll + output_yaw
-    #bl_motor_vel = 50.5 - output_pitch + output_roll - output_yaw
-    #fl_motor_vel = 50.5 - output_pitch - output_roll + output_yaw
-    #fr_motor_vel = 50.5 + output_pitch - output_roll - output_yaw
+    output_yaw = pMem_yaw + ki_yaw * iMem_yaw + kd_yaw * dMem_yaw
     
     #-------------------------------------------------------------------------------------------------------------------------------
     #Some Gazebo information for your reference.
@@ -105,15 +99,6 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, k
     #fl: Front Left
     #fr: Front Right
     #Calculate the ESC pulses (1000us - 2000us PWM signal) for each of the motor.
-    
-    #br in my code is fr in gazebo's world
-    #esc_br = 1500 + output_roll + output_pitch - output_yaw
-    #bl in my code is br in gazebo's world
-    #esc_bl = 1500 + output_roll - output_pitch + output_yaw
-    #fl in my code is bl in gazebo's world
-    #esc_fl = 1500 - output_roll - output_pitch - output_yaw
-    #fr in my code is fl in gazebo's world
-    #esc_fr = 1500 - output_roll + output_pitch + output_yaw
     
     #br in my code is fr in gazebo's world
     esc_br = thrust + output_roll + output_pitch - output_yaw
@@ -164,7 +149,7 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, k
     #---------------------------------------------------------------------------------------------------------------------------------
     #Provide the motor velocities to the object 'f' that will now exit out of this function, and gets published to gazebo, providing velocities to each motor. Note that the sign here is +,-,+,- i.e CW, CCW, CW, CCW in gazebo model. Change view of gazebo model (by scrolling) such that the green line comes to your left, red line goes forward, and blue line goes upward. This is the convention that i refer to as "Gazebo model" incase you get confused.
     f.data = [fr_motor_vel,-fl_motor_vel,bl_motor_vel, -br_motor_vel]
-    
+    #f.data = [br_motor_vel, -fr_motor_vel, fl_motor_vel, -bl_motor_vel]
     #Return these variables back to the control file.
     
     return f, err_roll, err_pitch, err_yaw

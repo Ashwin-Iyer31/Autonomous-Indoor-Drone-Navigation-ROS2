@@ -50,10 +50,8 @@ def generate_launch_description():
         executable="rf2o_laser_odometry_node",
         parameters=[{
                     'laser_scan_topic' : '/laser_controller/out',
-                    #'odom_topic' : '/odom_rf2o',
                     'odom_topic' : '/odom',
                     'publish_tf' : True,
-                    #'base_frame_id' : 'base_footprint',
                     'base_frame_id' : 'base_link',
                     #'odom_frame_id' : 'odom',
                     'init_pose_from_topic' : '',

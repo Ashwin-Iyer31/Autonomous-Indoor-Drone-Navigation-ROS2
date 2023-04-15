@@ -25,6 +25,9 @@
 		<color rgba="${212/255} ${175/255} ${55/255} 1" />
 	</material>
 	
+	<material name="yellow">
+		<color rgba="0.8 0.8 0.01 1" />
+	</material>
 	<!-- ================================= -->
 	<!-- Define Gazebo tags for every link -->
 	<gazebo reference="base_link1">
@@ -75,4 +78,23 @@
 		<material>Gazebo/Black</material>
 	</gazebo>
 
+	<gazebo reference="arduino" >
+		<material>Gazebo/Blue</material>
+	</gazebo>
+	
+	<gazebo reference="ESC1" >
+		<material>Gazebo/Yellow</material>
+	</gazebo>
+	
+	<gazebo reference="ESC2" >
+		<material>Gazebo/Yellow</material>
+	</gazebo>
+	
+	<gazebo reference="ESC3" >
+		<material>Gazebo/Yellow</material>
+	</gazebo>
+	
+	<gazebo reference="ESC4" >
+		<material>Gazebo/Yellow</material>
+	</gazebo>
 </robot>
