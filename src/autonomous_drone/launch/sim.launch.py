@@ -48,15 +48,35 @@ def generate_launch_description():
     rf2o_laser_odometry = Node(
         package="rf2o_laser_odometry",
         executable="rf2o_laser_odometry_node",
+        output='screen',
         parameters=[{
-                    'laser_scan_topic' : '/laser_controller/out',
+                    'laser_scan_topic' : '/scan',
                     'odom_topic' : '/odom',
                     'publish_tf' : True,
                     'base_frame_id' : 'base_link',
-                    #'odom_frame_id' : 'odom',
+                    'odom_frame_id' : 'odom',
                     'init_pose_from_topic' : '',
-                    'freq' : 10.0}]
+                    'freq' : 20.0}],
+        arguments=['--ros-args', '--log-level', 'error']
 
+    )
+
+    start_async_slam_toolbox_node = Node(
+        package='slam_toolbox',
+        executable='async_slam_toolbox_node',
+        name='slam_toolbox',
+        output='screen',
+        parameters=[
+            os.path.join(get_package_share_directory("autonomous_drone"), 'config', 'mapper_params_online_async.yaml'),
+            {'use_sim_time': True}],
+        arguments=['--ros-args', '--log-level', 'warn']
+    )
+
+    tf2_static_tfp = Node(
+            package='tf2_ros',
+            namespace = 'scan_to_map',
+            executable='static_transform_publisher',
+            arguments= ["0", "0", "0", "0", "0", "0", "map", "scan"]
     )
 
     # Run the node
@@ -65,5 +85,7 @@ def generate_launch_description():
         node_robot_state_publisher,
         spawn_entity,
         jmc_spawner,
-        rf2o_laser_odometry
+        rf2o_laser_odometry,
+        tf2_static_tfp,
+        start_async_slam_toolbox_node
     ])
