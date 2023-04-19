@@ -52,7 +52,7 @@ class PoseSub(Node):
         except ValueError:
             pass
         orientationObj = msg.pose[index].orientation
-        orientationList = [orientationObj.x, orientationObj.y, orientationObj.z, orientationObj.w]
+        orientationList = [orientationObj.w, orientationObj.x, orientationObj.y, orientationObj.z]
         (roll, pitch, yaw) = (quat2euler(orientationList))
 
         #send roll, pitch, yaw data to PID() for attitude-stabilisation, along with 'f', to obtain 'fUpdated'
@@ -80,7 +80,7 @@ class CmdVelSub(Node):
     def listener_callback(self, msg):
         global yawSetpoint, thrust, pitchSetpoint, rollSetpoint
         yawSetpoint = (msg.angular.z*10.0)  #Left is positive
-        thrust = (msg.linear.z*1000 + 1500) #Up is positive
+        thrust = (msg.linear.z*1000 + 1000) #Up is positive
         pitchSetpoint = (msg.linear.x*20.0) #Up is positive
         rollSetpoint = (msg.angular.x*10.0) #Left is positive
 

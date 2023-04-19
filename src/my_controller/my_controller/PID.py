@@ -5,9 +5,9 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
     global kp_pitch, ki_pitch, kd_pitch, kp_yaw, ki_yaw, kd_yaw, prevErr_roll, prevErr_pitch, prevErr_yaw, pMem_roll, pMem_yaw, pMem_pitch, iMem_roll, iMem_pitch, iMem_yaw, dMem_roll, dMem_pitch, dMem_yaw, flag, setpoint, sampleTime
     #-----------------------
     #Assign your PID values here. From symmetry, control for roll and pitch is the same.
-    kp_roll = 75
-    ki_roll = 0.0001
-    kd_roll = 50
+    kp_roll = 10
+    ki_roll = 0.001
+    kd_roll = 20
     kp_pitch = kp_roll
     ki_pitch = ki_roll
     kd_pitch = kd_roll
