@@ -84,8 +84,8 @@ def generate_launch_description():
         gazebo,
         node_robot_state_publisher,
         spawn_entity,
-        jmc_spawner
-        #rf2o_laser_odometry,
-        #tf2_static_tfp,
-        #start_async_slam_toolbox_node
+        jmc_spawner,
+        rf2o_laser_odometry,
+        tf2_static_tfp,
+        start_async_slam_toolbox_node
     ])

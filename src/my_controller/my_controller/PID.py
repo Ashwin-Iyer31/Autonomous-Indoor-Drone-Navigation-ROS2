@@ -1,19 +1,26 @@
 import time
 
-def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
+def PID(roll, pitch, yaw, alt, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint, altSetpoint):
     #Define the global variables to prevent them from dying and resetting to zero, each time a function call occurs. Some of these variables may be redundant.
     global kp_pitch, ki_pitch, kd_pitch, kp_yaw, ki_yaw, kd_yaw, prevErr_roll, prevErr_pitch, prevErr_yaw, pMem_roll, pMem_yaw, pMem_pitch, iMem_roll, iMem_pitch, iMem_yaw, dMem_roll, dMem_pitch, dMem_yaw, flag, setpoint, sampleTime
     #-----------------------
     #Assign your PID values here. From symmetry, control for roll and pitch is the same.
-    kp_roll = 10
-    ki_roll = 0.001
-    kd_roll = 20
+    kp_roll = 11
+    ki_roll = 0.0001
+    kd_roll = 22.5
+
     kp_pitch = kp_roll
     ki_pitch = ki_roll
     kd_pitch = kd_roll
+    
     kp_yaw = 0.1
     ki_yaw = 0
     kd_yaw = 0
+    
+    kp_alt = 40
+    ki_alt = 0.01
+    kd_alt = 70
+
     flag = 0
     #Define other variables here, and calculate the errors.
     sampleTime = 0
@@ -21,6 +28,7 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
     err_pitch = float(pitch)*(180 / 3.141592653) - pitchSetpoint
     err_roll = float(roll)*(180 / 3.141592653) - rollSetpoint
     err_yaw = float(yaw)*(180/3.14159263) - yawSetpoint
+    err_alt = altSetpoint - alt
     currTime = time.time()
     #-----------------------
     #Reset the following variables during the first run only.
@@ -29,15 +37,23 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
         prevErr_roll = 0
         prevErr_pitch = 0
         prevErr_yaw = 0
+        prevErr_alt = 0
+
         pMem_roll = 0
         pMem_pitch = 0
         pMem_yaw = 0
+        pMem_alt = 0
+
         iMem_roll = 0
         iMem_pitch = 0
         iMem_yaw = 0
+        iMem_alt = 0
+
         dMem_roll = 0
         dMem_pitch = 0
         dMem_yaw = 0
+        dMem_alt = 0
+
         flag += 1
     #------------------------
     #Define dt, dy(t) here for kd calculations.
@@ -45,7 +61,8 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
     dErr_pitch = err_pitch - prevErr_pitch
     dErr_roll = err_roll - prevErr_roll
     dErr_yaw = err_yaw - prevErr_yaw
-    
+    dErr_alt = err_alt - prevErr_alt
+
     #-------------------------------------------------------------------------------------------------------------------------------
     #This is the Heart of the PID algorithm. PID behaves more accurately, if it is sampled at regular intervals. You can change the sampleTime to whatever value is suitable for your plant.
     if(dTime >= sampleTime):
@@ -53,36 +70,42 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
         pMem_roll = kp_roll * err_roll
         pMem_pitch = kp_pitch * err_pitch
         pMem_yaw = kp_yaw * err_yaw
+        pMem_alt = kp_alt * err_alt
         
+        #integral(e(t))
         iMem_roll += err_pitch * dTime
         iMem_pitch += err_roll * dTime
         iMem_yaw += err_yaw * dTime
+        iMem_alt += err_alt * dTime
         
-        #integral(e(t))
         if(iMem_roll > 400): iMem_roll = 400
         if(iMem_roll < -400): iMem_roll = -400
         if(iMem_pitch > 400): iMem_pitch = 400
         if(iMem_pitch < -400): iMem_pitch = -400
         if(iMem_yaw > 400): iMem_yaw = 400
         if(iMem_yaw < -400): iMem_yaw = 400
+        if(iMem_alt > 400): iMem_alt = 400
+        if(iMem_alt < -400): iMem_alt = -400
         
         #derivative(e(t))
         dMem_roll = dErr_roll / dTime
         dMem_pitch = dErr_pitch / dTime
         dMem_yaw = dErr_yaw / dTime
-    
+        dMem_alt = dErr_alt / dTime
+
     #Store the current variables into previous variables for the next iteration.
     prevTime = currTime
     prevErr_roll = err_roll
     prevErr_pitch = err_pitch
     prevErr_yaw = err_yaw
-    
+    prevErr_alt = err_alt
+
     #output = Kp*e(t) + Ki*integral(e(t)) + Kd*derivative(e(t))
     output_roll = pMem_roll + ki_roll * iMem_roll + kd_roll * dMem_roll
     output_pitch = pMem_pitch + ki_pitch * iMem_pitch + kd_pitch * dMem_pitch
     output_yaw = pMem_yaw + ki_yaw * iMem_yaw + kd_yaw * dMem_yaw
-    
-    #-------------------------------------------------------------------------------------------------------------------------------
+    thrustcorrection = pMem_alt + ki_alt * iMem_alt + kd_alt * dMem_alt
+    #------------------------------------------------------------------------------------------------------------------------------
     #Some Gazebo information for your reference.
     
     #Positive roll is right wing down
@@ -101,13 +124,13 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
     #Calculate the ESC pulses (1000us - 2000us PWM signal) for each of the motor.
     
     #br in my code is fr in gazebo's world
-    esc_br = thrust + output_roll + output_pitch - output_yaw
+    esc_br = thrust + thrustcorrection + output_roll + output_pitch - output_yaw
     #bl in my code is br in gazebo's world
-    esc_bl = thrust + output_roll - output_pitch + output_yaw
+    esc_bl = thrust + + thrustcorrection + output_roll - output_pitch + output_yaw
     #fl in my code is bl in gazebo's world
-    esc_fl = thrust - output_roll - output_pitch - output_yaw
+    esc_fl = thrust + thrustcorrection - output_roll - output_pitch - output_yaw
     #fr in my code is fl in gazebo's world
-    esc_fr = thrust - output_roll + output_pitch + output_yaw
+    esc_fr = thrust + thrustcorrection - output_roll + output_pitch + output_yaw
     
     #Limit the ESC pulses to upper limit and lower limit, in case the PID algorithm goes crazy and high af.
     if(esc_br > 2000): esc_br = 2000
@@ -151,7 +174,7 @@ def PID(roll, pitch, yaw, f, yawSetpoint, thrust, pitchSetpoint, rollSetpoint):
     f.data = [fr_motor_vel,-fl_motor_vel,bl_motor_vel, -br_motor_vel]
     #f.data = [br_motor_vel, -fr_motor_vel, fl_motor_vel, -bl_motor_vel]
     #Return these variables back to the control file.
-    
+    #print(f.data)
     return f, err_roll, err_pitch, err_yaw
 
     
